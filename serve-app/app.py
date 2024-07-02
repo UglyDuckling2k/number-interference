@@ -40,10 +40,19 @@ class DigitClassifier(nn.Module):
 app = Flask(__name__)
 CORS(app) 
 
-# Load the trained model
-model = DigitClassifier().to(device)
-model.load_state_dict(torch.load(model_path))
-model.eval()
+# Initialize model variable
+model = None
+
+# Function to load model
+def load_model():
+    global model
+    if model is not None:
+        return
+    if not os.path.exists(model_path):
+        raise FileNotFoundError("Model file not found.")
+    model = DigitClassifier().to(device)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
 
 # Image preprocessing function
 def preprocess_image(image_bytes):
@@ -88,42 +97,51 @@ def preprocess_image(image_bytes):
     image = transform(image).unsqueeze(0)
     return image
 
+# Function to perform inference
+def perform_inference(image):
+    image = image.to(device)
+    with torch.no_grad():
+        output = model(image)
+        _, predicted = torch.max(output, 1)
+        return predicted.item()
+
+# Load model before first request
+@app.before_request
+def initialize_model():
+    load_model()
+
 # Define prediction endpoint
 @app.route("/predict", methods=["POST"])
 def predict():
-    if request.method == "POST":
+
+    try:
+        # Load model lazily removed, replaced with before_request
+        if model is None:
+            return jsonify({"error": "Model is not available"}), 503
+        
         # Parse JSON data sent with the request
         data = request.get_json()
+        image_data = data.get("image")
+        if not image_data:
+            return jsonify({"error": "No image data"})
 
-    # Access the image data from the JSON
-    image_data = data["image"]
+        # Decode the base64 string
+        try:
+            image_bytes = base64.b64decode(image_data)
+        except base64.binascii.Error:
+            return jsonify({"error": "Invalid base64 encoding"})
 
-    # Check if there is data in the request
-    if not image_data:
-        return jsonify({"error": "No image data"})
+        # Preprocess the image
+        image = preprocess_image(io.BytesIO(image_bytes))
 
-    # Decode the base64 string
-    try:
-        image_bytes = base64.b64decode(image_data)
-    except base64.binascii.Error:
-        return jsonify({"error": "Invalid base64 encoding"})
-
-    # Preprocess the image
-    image = preprocess_image(io.BytesIO(image_bytes))
-
-    # Perform inference
-    with torch.no_grad():
-
-        # Ensure the input tensor is on the same device as the model
-        image = image.to(device)  
-
-        output = model(image)
-        _, predicted = torch.max(output, 1)
-        prediction = predicted.item()
-
-    # Return the prediction as JSON response
-    return jsonify({"prediction": prediction})
-
+        # Perform inference
+        prediction = perform_inference(image)
+     
+        # Return the prediction as JSON response
+        return jsonify({"prediction": prediction})
+    
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
