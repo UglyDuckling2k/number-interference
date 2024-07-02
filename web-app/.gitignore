@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+
+# Output
+.output
+.vercel
+/.svelte-kit
+/build
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite-specific files
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Logs
+*.log
+
+# IDE/Editor configurations
+.vscode/
+.idea/
+
+# Dependency lock files (choose one to ignore based on your package manager)
+# yarn.lock  # If using npm
+# package-lock.json  # If using yarn
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Build outputs
+/dist
+/public
+
+# Project-specific files or directories
+# /config/development.json
+# private.key

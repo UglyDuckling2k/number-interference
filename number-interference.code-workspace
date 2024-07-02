@@ -1,0 +1,21 @@
+{
+    "folders": [
+      {
+        "name": "0 - Root",
+        "path": "."
+      },
+      {
+        "name": "1 - Model",
+        "path": "model-app"
+      },
+      {
+        "name": "2 - Serve",
+        "path": "serve-app"
+      },
+      {
+        "name": "3 - Web",
+        "path": "web-app"
+      }
+    ],
+    "settings": {}
+  }

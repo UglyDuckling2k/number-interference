@@ -1,0 +1,35 @@
+services:
+  model:
+    build: ./model-app
+    image: number-inference-model:latest
+    volumes:
+      - ./model-app:/app
+      - model_volume:/model
+      - data_volume:/data
+      
+  serve:
+    build: ./serve-app
+    image: number-inference-serve:latest
+    volumes:
+      - ./serve-app:/app 
+      - model_volume:/model
+    ports:
+      - "5000:5000"  
+
+  web:
+    build: ./web-app
+    image: number-inference-web:latest
+    volumes:
+      - ./web-app:/app
+    ports:
+      - "4173:4173"
+    environment:
+      - NODE_ENV=development   
+    depends_on: 
+      - serve   
+
+volumes:
+  model_volume:
+    external: true
+  data_volume:
+    external: true
