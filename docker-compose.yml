@@ -6,6 +6,7 @@ services:
       - ./model-app:/app
       - model_volume:/model
       - data_volume:/data
+      - logs_volume:/logs
       
   serve:
     build: ./serve-app
@@ -26,10 +27,17 @@ services:
     environment:
       - NODE_ENV=development   
 #    depends_on: 
-#      - serve   
+#      - serve
+
+  tensorboard:
+      image: tensorflow/tensorflow:latest
+      volumes:
+        - logs_volume:/app/tensorboard_logs  
+      ports:
+        - "6006:6006"
+      command: tensorboard --logdir=/app/tensorboard_logs --host 0.0.0.0
 
 volumes:
   model_volume:
-    external: true
   data_volume:
-    external: true
+  logs_volume: 

@@ -5,6 +5,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 from torchvision.datasets import MNIST
 from torch.utils.data import DataLoader, random_split
+from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
 # Check if CUDA is available
@@ -17,6 +18,8 @@ if os.getenv('RUNNING_IN_DOCKER') == 'true':
 else:
     model_path = './model/digit_classifier.pth'
 print(f"Model path: {model_path}")
+
+writer = SummaryWriter('/logs')
 
 # Define your CNN model
 class DigitClassifier(nn.Module):
@@ -79,7 +82,12 @@ for epoch in range(epochs):
         running_loss += loss.item()
         if (i+1) % 100 == 0:
             print(f"Epoch [{epoch+1}/{epochs}], Step [{i+1}/{len(train_loader)}], Loss: {running_loss/100:.4f}")
+            writer.add_scalar('training loss', running_loss / 100, epoch * len(train_loader) + i)
             running_loss = 0.0
+
+# After training
+writer.flush()
+writer.close()
 
 # Save the trained model
 torch.save(model.state_dict(), model_path)
