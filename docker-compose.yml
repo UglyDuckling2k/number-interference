@@ -4,9 +4,9 @@ services:
     image: number-inference-model:latest
     volumes:
       - ./model-app:/app
-      - model_volume:/model
       - data_volume:/data
-      
+      - logs_volume:/logs
+      - model_volume:/model
   serve:
     build: ./serve-app
     image: number-inference-serve:latest
@@ -28,8 +28,15 @@ services:
 #    depends_on: 
 #      - serve   
 
+  tensorboard:
+    image: tensorflow/tensorflow:latest
+    volumes:
+      - logs_volume:/logs 
+    ports:
+      - "6006:6006"
+    command: tensorboard --logdir=/logs --bind_all
+
 volumes:
-  model_volume:
-    external: true
   data_volume:
-    external: true
+  logs_volume:
+  model_volume:
